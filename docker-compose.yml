@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+
+ db:
+  build: ./
+  container_name: comments-dbcontainer
+  # image: postgres
+  # restart: always
+  environment:
+   POSTGRES_DB: commentsdb
+   POSTGRES_USER: comments_user
+   POSTGRES_PASSWORD: comments_pass
+  ports:
+   - 5432:5432
