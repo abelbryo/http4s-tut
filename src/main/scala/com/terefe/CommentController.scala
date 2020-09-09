@@ -1,28 +1,27 @@
 package com.terefe
 
-import java.util.UUID
-import java.time.Instant
-
-import scala.language.higherKinds
-
 import cats.effect.Effect
-import cats.Monad
 import cats.implicits._
-
+import cats.Monad
+import CommentSchema.CommentRow
+import fs2.Stream
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
-
-import org.http4s.rho.swagger.SwaggerSyntax
-import org.http4s.rho._
-
+import java.time.Instant
+import java.util.UUID
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
+import org.http4s.headers.`Content-Type`
+import org.http4s.rho._
+import org.http4s.rho.swagger.SwaggerSyntax
+import org.http4s.{Entity, EntityEncoder, MediaType}
 import org.slf4j.LoggerFactory
-import CommentSchema.CommentRow
+import scala.collection.compat.immutable.ArraySeq
+import scala.language.higherKinds
 
-class CommentController[F[_]: Effect: Monad](commentService: CommentService[F],
+class CommentController[F[+_]: Effect: Monad](commentService: CommentService[F],
                                              swaggerSyntax: SwaggerSyntax[F]) extends Http4sDsl[F] {
   import swaggerSyntax._
 
@@ -35,32 +34,46 @@ class CommentController[F[_]: Effect: Monad](commentService: CommentService[F],
   implicit val commentJsonFmt: EntityDecoder[F, CommentRow] = jsonOf[F, CommentRow]
   implicit val postCommentFmt: EntityDecoder[F, PostComment] = jsonOf[F, PostComment]
 
-
-  val service: RhoService[F] = new RhoService[F] {
+  val service: RhoRoutes[F] = new RhoRoutes[F] {
 
        "Get all comments " **
        GET / "comments" |>> { ()  =>
-         Ok(commentService.findAll.map(_.asJson))
+          for {
+            xs <- commentService.findAll
+            res <- Ok(xs.asJson)
+          } yield res
        }
 
         "Get comments for target" **
        GET / "comments" / 'target / "list" |>> { target: String =>
-         Ok(commentService.list(target) map (_.asJson))
+           for {
+            xs  <- commentService.list(target)
+            res <- Ok(xs.asJson)
+           } yield res
        }
 
       "Get comments by uuid" **
        GET /  "comments" / pathVar[UUID] |>> { id: UUID =>
-         Ok(commentService.get(id) map (_.asJson))
+         for {
+          o <- commentService.get(id)
+          res <- Ok(o.asJson)
+         } yield res
        }
 
       "Delete comments by uuid" **
        DELETE / "comments" / pathVar[UUID] |>> { id: UUID =>
-         Ok(commentService.delete(id) map (_.asJson))
+         for {
+           o <- commentService.delete(id)
+           res <- Ok(o.asJson)
+         } yield res
        }
 
       "Post new comment" **
        POST /  "comments" ^ postCommentFmt |>> { data: PostComment  =>
-         Created(commentService.create(data).map(_.asJson))
+         for {
+           createResult <- commentService.create(data)
+           res <- Created(createResult.asJson)
+         } yield res
        }
     }
 

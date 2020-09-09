@@ -23,6 +23,8 @@ object CommentSchema {
     ) = new CommentRow(UUID.randomUUID(), target.trim, parentId, text, Instant.now, false)
 
     val tupled = (CommentRow.apply _).tupled
+
+
   }
 
   import CustomPostgresProfile.api._

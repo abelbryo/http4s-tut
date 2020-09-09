@@ -14,6 +14,7 @@ import cats.implicits._
 import cats.effect.{Effect, IO, LiftIO}
 import com.terefe.CommentSchema.CommentRow
 import slick.jdbc.JdbcBackend.DatabaseDef
+import cats.effect.ContextShift
 
 trait CommentService[F[_]] {
   def create(r: PostComment): F[CommentRow]
@@ -23,7 +24,7 @@ trait CommentService[F[_]] {
   def findAll: F[List[CommentRow]]
 }
 
-class CommentServiceImpl[F[_]: Effect](db: DatabaseDef, dao: CommentDao)(implicit ec: ExecutionContext) extends CommentService[F] {
+class CommentServiceImpl[F[+_]: Effect: ContextShift](db: DatabaseDef, dao: CommentDao) extends CommentService[F] {
 
   def create(r: PostComment): F[CommentRow] = {
     val action = dao.create(CommentRow.toRow(r.target, r.parent, r.text))
@@ -46,7 +47,9 @@ class CommentServiceImpl[F[_]: Effect](db: DatabaseDef, dao: CommentDao)(implici
 
 object Util {
 
-  def fromFuture[F[_], A](f: => Future[A])(implicit F: Effect[F], ec: ExecutionContext): F[A] =
+  def fromFuture[F[+_]: ContextShift, A](f: => Future[A])(implicit F: Effect[F]): F[A] = {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
     F.delay(f) >>= (
       f => F.async { cb =>
         f.onComplete {
@@ -54,7 +57,8 @@ object Util {
           case Failure(ex) => cb(Left(ex))
         }
       }
-    )
+      )
+  }
 
 }
 

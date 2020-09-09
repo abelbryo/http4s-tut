@@ -1,7 +1,9 @@
 package com.terefe
 
 import scala.language.higherKinds
-import cats.effect.Effect
+import cats.effect.{ContextShift, Effect}
+
+import scala.concurrent.ExecutionContext
 
 object DbConfig {
 
@@ -9,11 +11,8 @@ object DbConfig {
 
   val db = Database.forConfig("postgres")
 
-  def initializeDb[F[_]: Effect](implicit ex: scala.concurrent.ExecutionContext):F[Unit] ={
+  def initializeDb[F[+_]: Effect: ContextShift](implicit ec: ExecutionContext): F[Unit] = {
     Util.fromFuture(db.run(new CommentDao().createTable))
   }
 
 }
-
-
-

@@ -3,15 +3,17 @@ package com.terefe
 import java.util.UUID
 
 import slick.jdbc.meta.MTable
+import scala.concurrent.ExecutionContext
 
-class CommentDao(implicit ec: scala.concurrent.ExecutionContext) {
+class CommentDao {
 
   import CommentSchema.{CommentRow, Comments}
   import CustomPostgresProfile.api._
 
-
-  def createTable: DBIOAction[Unit, NoStream, Effect.Read with Effect.Schema] =
-    MTable.getTables(Comments.baseTableRow.tableName).headOption flatMap {
+  def createTable(implicit
+      ec: ExecutionContext
+  ): DBIOAction[Unit, NoStream, Effect.Read with Effect.Schema] =
+    MTable.getTables(Comments.baseTableRow.tableName).headOption.flatMap {
       case Some(_) => DBIO.successful(())
       case None    => Comments.schema.create
     }
@@ -19,7 +21,9 @@ class CommentDao(implicit ec: scala.concurrent.ExecutionContext) {
   def create(row: CommentRow): DBIOAction[CommentRow, NoStream, Effect.Write] =
     Comments returning Comments += row
 
-  def list(target: String): DBIOAction[List[CommentRow], NoStream, Effect.Read] =
+  def list(
+      target: String
+  ): DBIOAction[List[CommentRow], NoStream, Effect.Read] =
     Comments.filter(_.target === target.trim).to[List].result
 
   def findAll: DBIOAction[List[CommentRow], NoStream, Effect.Read] =

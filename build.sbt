@@ -1,10 +1,10 @@
 
-val Http4sVersion = "0.18.8"
-val RhoCoreVersion = "0.18.0"
-val RhoSwaggerVersion = "0.18.0"
+val Http4sVersion = "0.21.7" // --
+val RhoCoreVersion = "0.21.0-RC1"
+val RhoSwaggerVersion = "0.21.0-RC1"
 val Specs2Version = "4.0.3"
 val LogbackVersion = "1.2.3"
-val CirceVersion = "0.9.1"
+val CirceVersion = "0.13.0"
 val SlickVersion = "3.2.3"
 val SlickHickariCPVersion = "3.2.3"
 val SlickPGVersion = "0.16.1"
@@ -14,7 +14,7 @@ lazy val root = (project in file("."))
     organization := "com.terefe",
     name         := "hello-http4s",
     version      := "0.0.1-SNAPSHOT",
-    scalaVersion := "2.12.5",
+    scalaVersion := "2.12.12",
     autoCompilerPlugins := true,
       libraryDependencies ++= Seq(
       "org.http4s"          %% "http4s-blaze-server"  % Http4sVersion,
