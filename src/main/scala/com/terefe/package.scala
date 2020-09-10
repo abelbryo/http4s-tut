@@ -2,14 +2,13 @@ package com
 
 import java.time.Instant
 import java.util.UUID
-import scala.collection.compat.immutable.ArraySeq
 
 import cats.effect.Sync
 import io.circe.Json
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import org.http4s.circe._
-import org.http4s.{EntityEncoder, EntityDecoder}
+import org.http4s.{EntityDecoder, EntityEncoder}
 
 package object terefe {
   import CommentSchema.CommentRow
@@ -22,6 +21,7 @@ package object terefe {
   implicit def postCommentFmt[F[_]: Sync](implicit dec: Decoder[PostComment]) = jsonOf[F, PostComment]
 
   implicit def commentRowEntityEncoder[F[_]](implicit enc: Encoder[CommentRow]) = jsonEncoderOf[F, CommentRow]
-  implicit def optCommentRowEntityEncoder[F[_]](implicit enc: Encoder[CommentRow]) = jsonEncoderOf[F, Option[CommentRow]]
+  implicit def optCommentRowEntityEncoder[F[_]](implicit enc: Encoder[CommentRow]) =
+    jsonEncoderOf[F, Option[CommentRow]]
   implicit def listCommentRowEntityEncoder[F[_]](implicit enc: Encoder[CommentRow]) = jsonEncoderOf[F, List[CommentRow]]
 }
