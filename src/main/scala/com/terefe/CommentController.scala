@@ -49,7 +49,10 @@ class CommentController[F[+_]: Effect: Monad](commentService: CommentService[F],
       GET / "comments" / pathVar[UUID] |>> { id: UUID =>
       for {
         o <- commentService.get(id)
-        res <- Ok(o)
+        res <- (o match {
+            case Some(a) => Ok(a)
+            case None => NotFound(s"Comment not found by id=$id")
+          })
       } yield res
     }
 
